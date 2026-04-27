@@ -19,6 +19,14 @@ AnrealV1/
 
 ---
 
+## Ilustración del mecanismo
+
+A continuación se muestra la base del funcionamiento del dispositivo. La trayectoria se compone de 2 etapas principales: la vista real del entorno y la simulación de este. Una vez que la persona llega a su límite de flexión lumbar el sistema continúa con la simulación del movimiento.
+
+https://github.com/Diego-Arredondo/AnReal/assets/53983520/ddc11e3e-2f08-4fc2-9d31-cb82ccbe9ac1
+
+---
+
 ## System Overview
 
 AnReal operates in two modes:
