@@ -6,73 +6,33 @@ The system combines a live camera feed of the user's real environment with a pre
 
 A video demonstration is available at: https://tinyurl.com/anrealxr
 
-> **Reviewers:** start with the [Reviewer Guide](REVIEWER_GUIDE.md). It explains the two roles
-> (content preparer vs. participant), **Stage 0** (recording → processing with the `c`/`q` keys →
-> compiling), and the fastest way to evaluate the app from a pre-built standalone APK.
+---
+
+## Quick start — install and try it
+
+For this submission the trajectory has already been prepared and embedded into the app (see **Stage 0** below), so **you only need to install a single APK** — no PC, build step, server, cable, or configuration.
+
+1. **Download the app:** [⬇ app-release.apk (latest release)](https://github.com/Diego-Arredondo/AnrealV1/releases/latest)
+2. Install it on an Android phone: copy the file to the phone and open it (allow *install from unknown sources*), **or** run `adb install -r app-release.apk`.
+3. Open **AnReal** and grant the **Camera** permission.
+4. Hold the phone — or place it in a cardboard VR headset — and bend forward. When the inclination crosses ~**30°**, the live camera feed switches to the pre-recorded trajectory video, creating the illusion of completing the full movement.
+
+The app runs **standalone**: everything, including the trajectory video, is embedded in the APK.
 
 ---
 
-## Quick start for evaluators
+## Requirements
 
-**Download the ready-to-install app:** **[⬇ app-release.apk (latest release)](https://github.com/Diego-Arredondo/AnrealV1/releases/latest)**
+**To install and run the app (all that is needed to evaluate it):**
 
-1. Copy the APK to an Android phone and open it (allow "install from unknown sources"), or run `adb install -r app-release.apk`.
-2. Open **AnReal** and grant the **Camera** permission.
-3. Hold the phone — or place it in a cardboard VR headset — and bend forward. At ~30° the live camera switches to the pre-recorded trajectory video.
+- An **Android** phone — the app is Android-only (this repository contains no iOS build).
+- **Android 8+** (minimum API 21) on an **arm64-v8a** CPU, i.e. essentially any phone from ~2017 onward. The APK does not target 32-bit-only devices or x86 emulators.
+- A **rear camera** plus **accelerometer and magnetometer** sensors (used to detect the inclination that triggers the transition).
+- A low-cost cardboard-type **VR headset** that fits the phone (~USD 32). Tested on a **Samsung Galaxy S21 FE**.
 
-The app runs **standalone**: no PC, server, cable, or Wi-Fi. See the [Reviewer Guide](REVIEWER_GUIDE.md) for the complete workflow and Stage 0.
+> **Device note:** the stereo / VR-overlay sizing is calibrated for the Samsung Galaxy S21 FE screen. The app runs on other Android phones, but on markedly different screen sizes the alignment with the headset lenses may need tuning.
 
-### Device compatibility
-- **Android only** — this repository contains no iOS build.
-- The release APK targets **arm64-v8a** (virtually all phones since ~2017); **Android 8+** recommended (`minSdk 21`). It will not install on 32-bit-only devices or x86 emulators unless rebuilt with extra ABIs (`reactNativeArchitectures` in `android/gradle.properties`).
-- Requires a **rear camera + accelerometer + magnetometer**.
-- The stereo / VR-overlay sizing is **calibrated for the Samsung Galaxy S21 FE** screen; on devices with very different screen dimensions the alignment with the headset lenses may need tuning.
-
----
-
-## Repository Structure
-
-```
-AnrealV1/
-├── App.tsx                   # React Native root component (NavigationContainer)
-├── index.js                  # Registers the root component "Principal"
-├── app.json                  # App name / displayName
-├── package.json              # JavaScript dependencies and scripts
-├── babel.config.js           # Babel (babel-preset-expo)
-├── metro.config.js           # Metro bundler config (adds .mp4 to assetExts)
-├── tsconfig.json             # TypeScript config
-├── react-native.config.js    # Points the RN CLI at main/AndroidManifest.xml (non-standard layout)
-│
-├── src/                      # React Native application (TypeScript)
-│   ├── navigator/            # StackNavigator
-│   ├── screens/              # PrincipalScreen, DoubleCameraScreen, VideoScreens
-│   ├── theme/                # appTheme
-│   └── media/                # VR overlay image and trajectory videos (src/media/videos/wena.mp4)
-│
-├── main/                     # Native Android modules (Kotlin/Java/C++) + resources
-│   ├── AndroidManifest.xml
-│   ├── java/com/principal/   # CameraModule.kt, DoubleCamera3.kt, MainActivity, MainApplication
-│   ├── res/                  # layouts, drawables, mipmaps, strings
-│   └── jni/                  # New Architecture C++ (kept for reference; New Arch is disabled)
-│
-├── android/                  # Gradle project; its app source sets point at ../main
-│
-└── procesamiento_video.py    # Python script for video pre-processing (PC side)
-```
-
-> **Note on layout.** To preserve the structure used in the publication, the React Native
-> sources live under `src/` and the native Android sources under `main/` (instead of the
-> conventional `android/app/src/main/...`). Two files bridge this non-standard layout:
-> `react-native.config.js` (tells the JS CLI where the manifest is) and `sourceSets` in
-> [`android/app/build.gradle`](android/app/build.gradle) (tells Gradle where the native sources are).
-
----
-
-## Ilustración del mecanismo
-
-A continuación se muestra la base del funcionamiento del dispositivo. La trayectoria se compone de 2 etapas principales: la vista real del entorno y la simulación de este. Una vez que la persona llega a su límite de flexión lumbar el sistema continúa con la simulación del movimiento.
-
-https://github.com/Diego-Arredondo/AnReal/assets/53983520/ddc11e3e-2f08-4fc2-9d31-cb82ccbe9ac1
+A PC with Python/OpenCV and the Android build toolchain is required **only** to reproduce Stage 0 (below); it is **not** needed to install or run the app.
 
 ---
 
@@ -80,182 +40,54 @@ https://github.com/Diego-Arredondo/AnReal/assets/53983520/ddc11e3e-2f08-4fc2-9d3
 
 AnReal operates in two modes:
 
-1. **Camera preview mode**: the user sees their real environment in real time through the smartphone rear camera, displayed via the VR headset.
-2. **Trajectory simulation mode**: at a predetermined inclination angle, the app seamlessly switches to a pre-recorded video that continues the expected movement trajectory, creating the illusion that the user has moved further than they actually did.
+1. **Camera preview mode** — the user sees their real environment in real time through the phone's rear camera, shown through the VR headset.
+2. **Trajectory simulation mode** — at a predetermined inclination angle, the app seamlessly switches to a pre-recorded video that continues the expected movement, creating the illusion that the user has moved further than they actually did.
 
-The system uses the device's IMU sensors (accelerometer, gyroscope, magnetometer) to detect the user's inclination in real time. The transition between modes is designed to be imperceptible to the user.
-
----
-
-## Hardware Requirements
-
-- Android smartphone with rear camera and IMU sensors (tested on Samsung Galaxy S21 FE, Android 12+)
-- Low-cost VR headset compatible with the smartphone (cardboard-type, ~USD 32)
-- A Windows/Linux/macOS laptop or desktop for video pre-processing and for building the app
-- Wi-Fi network connecting the smartphone and the PC (only needed for development with the Metro dev server)
+The app reads the device's IMU (accelerometer + magnetometer) through the Android `SensorManager` and fuses them into a pitch angle to detect the inclination in real time; the transition between modes is designed to be imperceptible. The live camera feed is duplicated into two stereo views for the headset via the Android Camera2 API, and the trajectory video is played with `react-native-video`.
 
 ---
 
-## Software Requirements
+## Illustration of the mechanism
 
-### Android App (toolchain — versions matter)
-- **Node.js** (the project targets Node 16–18; on newer Node use `npm install --legacy-peer-deps`)
-- **JDK 11** — *required*. Newer JDKs (17/21) are incompatible with Gradle 7.5.1 / AGP 7.2 and will fail the build.
-- **Android SDK** with: **Platform API 31**, **Build-Tools 31.0.0**, **Platform-Tools** (adb), **NDK 21.4.7075529**, **CMake 3.18.1**
-- React Native **0.70.5** + Expo SDK **47** (bare workflow), installed via `npm install`
-- Gradle **7.5.1** (via the wrapper), Android Gradle Plugin **7.2.1**, Kotlin **1.6.10**
-- The easiest way to obtain the SDK + NDK + CMake is **Android Studio** (its SDK Manager).
+The video below shows the basis of how the device works. The trajectory has two main stages: the real view of the environment and its simulation. Once the person reaches their lumbar-flexion limit, the system continues with the simulated movement.
 
-> The New Architecture (Fabric/TurboModules) is **disabled** (`newArchEnabled=false`). The files
-> under `main/jni/` and `main/java/com/principal/newarchitecture/` are kept as published but are not
-> part of the active build.
-
-### PC (Video Pre-processing)
-- Python 3.8+
-- OpenCV: `pip install opencv-python`
-- NumPy: `pip install numpy`
+https://github.com/Diego-Arredondo/AnReal/assets/53983520/ddc11e3e-2f08-4fc2-9d31-cb82ccbe9ac1
 
 ---
 
-## Installation and Usage
+## Repository Structure
 
-### Step 1 — Pre-process the trajectory video (PC)
-
-A researcher records the expected movement trajectory (e.g., a full forward bend) using a lightweight
-adjustable rig (tripod + office chair), while the participant gets familiar with the headset.
-
-Edit the configuration variables in the `__main__` block at the bottom of `procesamiento_video.py`:
-
-```python
-input_name = "alto.mp4"                              # raw video file name
-input_dir  = "/path/to/raw/videos"                   # folder that contains input_name
-mid_dir    = "/path/to/intermediate"                 # folder for the cropped intermediate file
-output_dir = "/path/to/AnrealV1/src/media/videos"    # the app's media folder
-name       = "wena.mp4"                              # output file name (the app loads src/media/videos/wena.mp4)
+```
+AnrealV1/
+├── App.tsx, index.js, app.json        # React Native entry point + app config
+├── package.json, babel.config.js, metro.config.js, tsconfig.json
+├── react-native.config.js             # bridges the non-standard layout to the RN CLI
+├── src/                               # React Native app (TypeScript): screens, navigator, media
+├── main/                              # Native Android sources (Kotlin/Java/C++) + resources
+├── android/                           # Gradle project (app sourceSets point at ../main)
+└── procesamiento_video.py             # Stage 0: trajectory-video pre-processing (PC)
 ```
 
-Then run it and mark the trajectory interactively:
-
-```bash
-python procesamiento_video.py
-```
-- Press `c` to start the repetition counter (the point where the forward movement begins).
-- Press `q` to set the key frame where the forward movement ends.
-
-The script crops the video to the headset field of view and writes the processed clip to
-`src/media/videos/wena.mp4`. The app bundles this file at build time
-(`PrincipalScreen` loads it with `require('../media/videos/wena.mp4')`), so **to use a new
-trajectory you replace that file and rebuild** (release) or reload (development).
-
-### Step 2 — Build the Android app
-
-Common setup (do this once):
-
-```bash
-git clone https://github.com/Diego-Arredondo/AnrealV1.git
-cd AnrealV1
-npm install            # add --legacy-peer-deps on Node >= 20
-```
-
-1. **Generate the debug keystore** (not committed):
-   ```bash
-   keytool -genkeypair -v -keystore android/app/debug.keystore \
-     -storepass android -alias androiddebugkey -keypass android \
-     -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-   ```
-2. **Gradle wrapper** — already included in `android/`. (Only if it is ever missing, regenerate with
-   `cd android && gradle wrapper --gradle-version 7.5.1 && cd ..`, or open `android/` in Android Studio.)
-3. **Point Gradle at your SDK** — create `android/local.properties`:
-   ```
-   sdk.dir=/path/to/Android/Sdk
-   ```
-4. **Set the environment** so the command line uses JDK 11 and the SDK (example, Windows `cmd`):
-   ```cmd
-   set "JAVA_HOME=C:\Program Files\Java\jdk-11.x"
-   set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
-   set "PATH=%JAVA_HOME%\bin;%ANDROID_HOME%\platform-tools;%PATH%"
-   ```
-5. **Boost download fix** (`expo-modules-core`): the original Boost download URL
-   (`boostorg.jfrog.io`) is dead. This repo points it at `archives.boost.io`
-   ([android/app build chain]). If a fresh `npm install` resets it, re-apply the patch (or use
-   `patch-package`) so `:expo-modules-core:prepareBoost` can unpack a valid `boost_1_76_0.tar.gz`.
-
-#### Option A — Standalone release APK (recommended for distribution)
-
-Produces a single self-contained APK with the JS bundle embedded — runs without Metro, cable or Wi-Fi.
-
-```bash
-cd android
-./gradlew app:assembleRelease          # gradlew.bat on Windows
-```
-The APK is written to `android/app/build/outputs/apk/release/app-release.apk` (~28 MB). Share it as-is;
-recipients install it (allowing "install unknown apps"). Only `arm64-v8a` is built by default
-(see `reactNativeArchitectures` in `android/gradle.properties`); add other ABIs there to widen device support.
-
-Install on a connected device:
-```bash
-adb install -r android/app/build/outputs/apk/release/app-release.apk
-```
-
-> The release APK is signed with the **debug keystore**, which is fine for direct sharing/sideloading.
-> For Google Play you must generate your own release keystore — see
-> https://reactnative.dev/docs/signed-apk-android.
-
-#### Option B — Development build (live reload via Metro)
-
-For iterating on the JS/video without rebuilding the APK each time.
-
-```bash
-# Terminal 1 — start the Metro dev server bound to all interfaces (IPv4 + LAN):
-npx react-native start --host 0.0.0.0
-
-# Terminal 2 — build, install and launch the debug app (device connected, USB debugging on):
-npx react-native run-android
-```
-If the app shows the red "Unable to load script / Could not connect to development server" screen:
-- Over **USB**: run `adb reverse tcp:8081 tcp:8081`, then reload the app.
-- Over **Wi-Fi** (same network): in the app dev menu set *Debug server host & port* to `<PC-LAN-IP>:8081`,
-  and allow port 8081 through the PC firewall. (Metro must be started with `--host 0.0.0.0`.)
-
-### Step 3 — Run the rehabilitation exercise
-
-1. Place the smartphone in the VR headset.
-2. Launch the AnReal app and grant the **Camera** permission. The participant first sees the camera preview.
-3. The participant performs the forward bend. When the measured pitch exceeds the threshold angle
-   (`anguloVideo`, default **30°**), the app switches to the simulated trajectory video, extending the
-   apparent range of motion.
-4. The app cycles through camera preview and trajectory simulation across three sets of 10 repetitions.
+> The React Native sources live in `src/` and the native Android sources in `main/`, a layout kept for consistency with the publication. `react-native.config.js` and the `sourceSets` block in `android/app/build.gradle` bridge this layout to the build tools.
 
 ---
 
-## Key Technical Details
+## Stage 0 — preparing the trajectory (already done for this submission)
 
-- **Camera stream**: handled via the Android Camera2 API in a native Kotlin activity (`DoubleCamera3`),
-  duplicated into two stereo previews (two `TextureView`s) for the VR headset.
-- **Native module bridge**: `CameraModule` (`getName() = "DiegoCamera"`) exposes `openCamera(...)` to
-  JavaScript via the React Native bridge and returns the measured angle/series/counter to the JS layer.
-- **IMU reading**: the native activity reads the accelerometer and magnetometer through the Android
-  `SensorManager` and fuses them (`getRotationMatrix`/`getOrientation`) into a pitch angle that drives the
-  camera→video transition. The React Native layer additionally samples the accelerometer through
-  `expo-sensors` at ~60 Hz (`setUpdateInterval(16)`) to detect the upright position.
-- **View transition**: when the live pitch exceeds `anguloVideo` (default 30°), the native activity
-  finishes and the React Native screen plays the pre-recorded trajectory video.
-- **Video playback**: via `react-native-video`; the trajectory video is bundled from `src/media/`
-  (`metro.config.js` adds `.mp4` to the asset extensions so `require('....mp4')` works).
+In real use the system has two roles:
 
----
+- **Content preparer** (researcher / healthcare professional): performs **Stage 0 once** per trajectory.
+- **Participant** (patient): only installs and uses the app — no setup.
 
-## Known Limitations & Build Notes (v1.0)
+**For this submission we have already performed Stage 0** and embedded a sample trajectory into the APK, so reviewers only download and install it (see *Quick start*). This was done for simplicity, and it also mirrors real clinical use, where the clinician prepares the trajectory once and the patient simply runs the prepared app.
 
-- The transition between camera view and video may produce a brief visual discontinuity due to overhead
-  introduced by the React Native bridge. This is addressed in subsequent versions.
-- During development the JavaScript bundle and assets are served from the PC to the smartphone over Wi-Fi
-  by the Metro dev server. The trajectory video is bundled into the app (not streamed at runtime).
-- Currently supports one exercise (forward bending). Additional exercises require recording new trajectory videos.
-- **Not committed:** `node_modules/` (run `npm install`), `android/local.properties` (your SDK path), and
-  `android/app/debug.keystore` (generate it — see Step 2). The Gradle wrapper *is* included.
-- **Toolchain pitfalls:** use **JDK 11** (not 17/21); install **NDK 21.4.7075529** + **CMake 3.18.1**; the
-  `expo-modules-core` Boost URL must point at `archives.boost.io`.
+For transparency and reproducibility, Stage 0 consists of:
+
+1. **Record** the movement: mount the phone on an adjustable rig (e.g., tripod + chair) and record the full intended movement (a complete forward lumbar bend) from the participant's viewpoint.
+2. **Process** it with `procesamiento_video.py` (needs Python 3.8+, `opencv-python`, `numpy`): set the input/output paths in the script, run it, and mark the movement on the preview window — press **`c`** at the start of the forward movement and **`q`** at its end. The script crops the clip to the headset field of view, builds the seamless go-and-return loop, and writes the result to `src/media/videos/wena.mp4`.
+3. **Compile** the app so the processed video is bundled in: with JDK 11 and the Android SDK installed, run `gradlew app:assembleRelease`, which produces the standalone APK published in *Quick start*.
+
+This is why the video does not need to be transferred to the device during a session: it is embedded into the APK in Stage 0, **before** installation. The trigger angle (~30°) lives in the app, not in this script.
 
 ---
 
