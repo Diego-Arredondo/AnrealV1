@@ -25,12 +25,8 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
-        <activity android:name=".DoubleCamera"/>
-        <activity android:name=".DoubleCamera2"/>
-        <activity android:name=".DoubleCamera3"/>
-        <activity android:name=".Accelerometer"/>
-        <activity android:name=".Accelerometer2"/>
-        <activity android:name=".Accelerometer3"/>
-        <activity android:name=".CameraAcelerator"/>
+        <activity
+          android:name=".DoubleCamera3"
+          android:exported="false" />
     </application>
 </manifest>

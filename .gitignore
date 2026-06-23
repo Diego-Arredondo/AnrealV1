@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# React Native / Metro
+.metro-health-check*
+*.tsbuildinfo
+
+# Android / Gradle build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/app/release/
+*.keystore
+android/local.properties
+.cxx/
+
+# IDE
+.idea/
+*.iml
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# misc
+*.log
+npm-debug.*
+yarn-error.*
+.DS_Store

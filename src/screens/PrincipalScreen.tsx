@@ -27,7 +27,7 @@ export const PrincipalScreen = ({navigation}: Props) => {
   const [velocidad, setVelocidad] = useState("0")
   const [counter, setCounter] = useState(0)
   // const [source, setSource] = useState(require('/home/diegodinho/Documentos/Escritorio/Magister/Desarrollo App/React Native/Principal/src/media/goku.mp4'))
-  const [source, setSource] = useState(require('/home/diegodinho/Documentos/Escritorio/Magister/Desarrollo App/React Native/Principal/src/media/videos/wena.mp4'))
+  const [source, setSource] = useState(require('../media/videos/wena.mp4'))
   const [pause, setpause] = useState(true)
   const video = React.useRef(null);
   const video2 = React.useRef(null);
@@ -113,9 +113,9 @@ export const PrincipalScreen = ({navigation}: Props) => {
       visible = {true}>
 
         <Image
-        source={require('/home/diegodinho/Documentos/Escritorio/Magister/Desarrollo App/React Native/Principal/src/media/VR.png')}
-        style={styles.VRComponent}>
-        </Image>
+        source={require('../media/VR.png')}
+        style={styles.VRComponent}
+        />
       
       </Modal>
       

@@ -1,0 +1,15 @@
+rootProject.name = 'Principal'
+
+// Expo modules autolinking (expo-sensors, expo, etc.)
+apply from: new File(["node", "--print", "require.resolve('expo/package.json')"].execute(null, rootDir).text.trim(), "../scripts/autolinking.gradle")
+useExpoModules()
+
+// React Native community CLI autolinking (react-native-video, screens, etc.)
+apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), "../native_modules.gradle")
+applyNativeModulesSettingsGradle(settings)
+
+include ':app'
+
+// React Native 0.70 ships its Gradle plugin inside node_modules (not on Maven Central).
+// Include it as a composite build so `com.facebook.react:react-native-gradle-plugin` resolves.
+includeBuild(new File(["node", "--print", "require.resolve('react-native-gradle-plugin/package.json')"].execute(null, rootDir).text.trim()).getParentFile())

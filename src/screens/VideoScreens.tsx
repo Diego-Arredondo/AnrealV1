@@ -11,7 +11,7 @@ export const VideoScreen = ({route, navigation}: Props) => {
   const [angulo, setAngulo] = useState(0.0)
   const [duration, setDuration] = useState(0.0)
   // const [source1, setSource1] = useState(require('/home/diegodinho/Documentos/Escritorio/Magister/Desarrollo App/React Native/Principal/src/media/output.mp4'))
-  const [source, setSource] = useState(require('/home/diegodinho/Documentos/Escritorio/Magister/Desarrollo App/React Native/Principal/src/media/goku.mp4'))
+  const [source, setSource] = useState(require('../media/goku.mp4'))
   // const [source2, setSource2] = useState(require('/home/diegodinho/Documentos/Escritorio/Magister/Desarrollo App/React Native/Principal/src/media/goku.mp4'))
 
   const params = route.params;
@@ -59,9 +59,9 @@ export const VideoScreen = ({route, navigation}: Props) => {
       visible = {visibility}>
 
         <Image
-        source={require('/home/diegodinho/Documentos/Escritorio/Magister/Desarrollo App/React Native/Principal/src/media/VR.png')}
-        style={styles.VRComponent}>
-        </Image>
+        source={require('../media/VR.png')}
+        style={styles.VRComponent}
+        />
       
       </Modal>
       
