@@ -6,6 +6,11 @@ The system combines a live camera feed of the user's real environment with a pre
 
 A video demonstration is available at: https://tinyurl.com/anrealxr
 
+> ⚙️ **You are on the `self-serve` branch.** This build adds a workflow to load *your own* trajectory
+> video by pushing it from the PC to the app over Wi-Fi at runtime (no rebuild per video). For that,
+> follow **[README.selfserve.md](README.selfserve.md)**. The instructions below describe the simpler
+> `master` model (a fixed trajectory baked into the APK).
+
 ---
 
 ## Quick start — install and try it

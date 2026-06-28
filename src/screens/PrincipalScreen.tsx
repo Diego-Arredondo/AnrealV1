@@ -19,7 +19,7 @@ const DoubleCamera = NativeModules.DiegoCamera
 
 interface Props extends StackScreenProps<any,any>{};
 
-export const PrincipalScreen = ({navigation}: Props) => {
+export const PrincipalScreen = ({navigation, route}: Props) => {
 
 
 
@@ -27,7 +27,9 @@ export const PrincipalScreen = ({navigation}: Props) => {
   const [velocidad, setVelocidad] = useState("0")
   const [counter, setCounter] = useState(0)
   // const [source, setSource] = useState(require('/home/diegodinho/Documentos/Escritorio/Magister/Desarrollo App/React Native/Principal/src/media/goku.mp4'))
-  const [source, setSource] = useState(require('../media/videos/wena.mp4'))
+  // Self-serve: if a trajectory was received over the network, play that file; otherwise the bundled one.
+  const receivedUri: string | undefined = route?.params?.videoUri;
+  const [source, setSource] = useState(receivedUri ? { uri: receivedUri } : require('../media/videos/wena.mp4'))
   const [pause, setpause] = useState(true)
   const video = React.useRef(null);
   const video2 = React.useRef(null);
