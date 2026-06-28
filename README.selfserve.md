@@ -12,6 +12,34 @@ How it differs from `master`: the app opens on a **Receiver screen**, listens on
 
 ---
 
+## Quick test — serve a video yourself (no recording needed)
+
+To validate the transfer end-to-end without recording or processing a new clip, push any existing
+`.mp4` (for example the sample `src/media/goku.mp4`) from the PC to the app:
+
+1. **Install the self-serve APK** on the phone (build it once with step 3 of the full pipeline below):
+   ```bash
+   adb install -r android/app/build/outputs/apk/release/app-release.apk
+   ```
+2. Put the **phone and PC on the same Wi-Fi** (or turn on the phone's hotspot and join it from the PC).
+3. **Open AnReal.** The Receiver screen shows the phone's IP and port, e.g. `192.168.100.14 : 8888`.
+4. Tap **Start listening** → it should read *"Waiting for the PC to connect…"*.
+5. On the PC, from the repository root, run it with the IP shown on the phone:
+   ```bash
+   python send_video.py 192.168.100.14 8888 src/media/goku.mp4
+   ```
+   You should see the progress climb to `Sending... 100%` and then `Sent N bytes`.
+6. The phone moves through `connected → receiving NN% → done` and opens the main screen.
+7. Place the phone in the headset (or just hold it) and **bend forward**; at ~30° it plays the video you
+   just sent. (Sending a clip that looks different from the bundled one — like `goku.mp4` — confirms it
+   is really playing the received file.)
+
+**Needs:** Python 3.8+ on the PC (`send_video.py` uses only the standard library — no OpenCV/NumPy), and
+the phone connected by USB to install the APK once. To send a different video afterward, relaunch the app
+and repeat from step 4.
+
+---
+
 ## Full pipeline (the evaluator does all of this)
 
 ### 1. Record a trajectory video
